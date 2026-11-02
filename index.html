@@ -671,9 +671,9 @@ body { background: var(--cream); font-family: 'Jost', sans-serif; color: var(--d
           <div class="journey-connector"></div>
         </div>
         <div class="journey-content">
-          <div class="journey-step-label" style="color:rgba(255,255,255,0.4)">Now In Progress</div>
+          <div class="journey-step-label" style="color:rgba(255,255,255,0.4)">Up Next</div>
           <div class="journey-step-title" style="color:rgba(255,255,255,0.7)">The Observer Assessments</div>
-          <div class="journey-step-desc" style="color:rgba(255,255,255,0.35)">Your observers have been notified. As each one completes their confidential assessment, the full contours of your Portrait begin to emerge, seen through the eyes of those who know you best. Your coach will reach out once all assessments are complete.</div>
+          <div class="journey-step-desc" style="color:rgba(255,255,255,0.35)">Your observers will receive an email invitation from Sypnios to share their perspective. As each one completes their confidential assessment, the full contours of your Portrait begin to emerge, seen through the eyes of those who know you best. Your coach will reach out once all assessments are complete.</div>
         </div>
       </div>
 
@@ -1506,7 +1506,7 @@ async function sendPortraitToFormspree(snapshot) {
 
   console.log('Fields being sent:', Object.values(responseFields).filter(r => r.length > 0).length, 'responses');
 
-  // ── SUPABASE (primary — permanent database storage) ──────────────
+  // ── SUPABASE (secondary backup — never blocks completion) ──────────
   // Build observer fields for Supabase (up to 6)
   const obsFields = {};
   const obs = ci.observers || [];
@@ -1537,7 +1537,8 @@ async function sendPortraitToFormspree(snapshot) {
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify(supabasePayload)
+      body: JSON.stringify(supabasePayload),
+      signal: AbortSignal.timeout(10000)
     });
     supabaseOk = res.ok;
     console.log('Supabase store:', res.status, res.ok ? 'OK — data permanently saved' : 'FAILED');
@@ -1549,7 +1550,8 @@ async function sendPortraitToFormspree(snapshot) {
     console.error('Supabase send error:', e);
   }
 
-  // ── FORMSPREE (secondary — email notification) ────────────────────
+  // ── FORMSPREE (primary collection system — determines success) ────
+  let formspreeOk = false;
   const formspreePayload = JSON.stringify({
     _subject: 'Portrait COMPLETED, ' + name + ' | ' + (ci.company || '') + ' | ' + new Date().toLocaleString(),
     type: 'PORTRAIT RESPONSES',
@@ -1571,9 +1573,10 @@ async function sendPortraitToFormspree(snapshot) {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: formspreePayload
     });
+    formspreeOk = res.ok;
     console.log('Formspree notify:', res.status, res.ok ? 'OK' : 'FAILED');
   } catch(e) {
-    console.warn('Formspree notification failed (data still safe in Supabase):', e);
+    console.warn('Formspree submission failed:', e);
   }
 
   // ── RESULT MESSAGE ────────────────────────────────────────────────
@@ -1581,8 +1584,8 @@ async function sendPortraitToFormspree(snapshot) {
   const sendingMsg = document.getElementById('sendingMsg');
   if (sendingMsg) sendingMsg.remove();
 
-  if (!supabaseOk) {
-    // Only show error if Supabase itself failed
+  if (!formspreeOk) {
+    // Show the error only if Formspree, the primary system, failed
     const errMsg = document.createElement('p');
     errMsg.style.cssText = 'color:#ffaaaa;font-size:14px;margin-top:16px;';
     errMsg.innerHTML = 'There was a problem submitting your responses.<br>Please contact <strong>jpendergrass@sypnios.com</strong> to let us know you have completed your Portrait.';
