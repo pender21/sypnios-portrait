@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- SYPNIOS LEADER INTAKE v7.0 DRAFT, built from Master_Portrait_HTML_10_12_26.html. Not for production until approved. -->
+<!-- SYPNIOS LEADER INTAKE v7.0 DRAFT rev2 (observer validation, halfway screen, Q19, Q20), built from Master_Portrait_HTML_10_12_26.html. Not for production until approved. -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Sypnios Leadership Portrait</title>
@@ -130,6 +130,17 @@ body { background: var(--cream); font-family: 'Jost', sans-serif; color: var(--d
 .field .errmsg { font-size: 12px; color: #e53e3e; display: none; }
 .field .errmsg.show { display: block; }
 .observer-note { font-size: 14px; color: var(--muted); font-style: italic; line-height: 1.7; margin-bottom: 16px; font-weight: 300; }
+.obs-required-card { background: var(--pale); border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 18px 20px; margin: 4px 0 18px; }
+.obs-required-card .orc-title { font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dark-green); font-weight: 600; margin-bottom: 8px; }
+.obs-required-card p { font-size: 15px; line-height: 1.65; color: var(--mid); margin: 0; font-weight: 400; }
+.obs-error-box { display: none; background: #fdf0f0; border: 1px solid #e53e3e; border-left: 4px solid #e53e3e; padding: 16px 18px; margin: 0 0 18px; color: #8a1f1f; }
+.obs-error-box.show { display: block; }
+.obs-error-box .oeb-title { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 6px; }
+.obs-error-box ul { margin: 6px 0 0 18px; padding: 0; font-size: 14px; line-height: 1.6; }
+.field label .req { color: #e53e3e; font-weight: 600; margin-left: 2px; }
+.halfway-trophy { width: 100px; height: 100px; display: block; margin: 0 auto 18px; }
+.halfway-count { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--muted); font-style: italic; margin-bottom: 24px; }
+.halfway-break { font-size: 13px; line-height: 1.75; color: var(--muted); max-width: 500px; margin: -12px auto 32px; padding: 14px 18px; border: 1px solid var(--border); background: var(--pale); text-align: left; }
 .observer-card { background: var(--pale); border: 1px solid var(--border); padding: 20px 16px 16px; margin-bottom: 10px; position: relative; }
 .observer-num { position: absolute; top: -10px; left: 12px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 10px; letter-spacing: 0.1em; }
 
@@ -488,9 +499,15 @@ body { background: var(--cream); font-family: 'Jost', sans-serif; color: var(--d
 
     <div class="section-label">Your Observer Circle</div>
     <p class="observer-note">A trusted observer is someone who has worked alongside you, reported to you, or walked closely enough with you to give an honest, not flattering, account of how you lead. Choose people who will tell the truth. Not people who will tell you what you want to hear. Their names are kept confidential. Their honesty is what makes this portrait accurate.</p>
-    <p class="observer-note"><strong>Please name five different people.</strong> You may add up to seven.</p>
+    <div class="obs-required-card">
+      <div class="orc-title">Five Observers Required</div>
+      <p>Please provide the names and email addresses of at least five individuals who know your leadership well. Each observer must have a unique, valid email address. You may include up to seven observers.</p>
+    </div>
+    <div class="obs-error-box" id="obsCountErr" role="alert" tabindex="-1">
+      <div class="oeb-title">Five unique observers are required. Please complete the name and valid email address for each of your first five observers before continuing.</div>
+      <ul id="obsErrList"></ul>
+    </div>
     <div id="observerSlots"></div>
-    <span class="errmsg" id="obsCountErr" style="font-size:14px;margin:4px 0 12px;">Please add five different people, each with a full name and a valid email address.</span>
     <button class="btn-add-observer" id="btnAddObs" onclick="addObserver()">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Add another observer
@@ -835,10 +852,10 @@ const QUESTIONS = [
 
   { movement:"Movement Four", mTitle:"Character Under Pressure",
     q:"Complete this sentence, and finish it the way you actually believe it, not the way it sounds good: I lead because __________.",
-    hint:"This is the seed of your personal Why Statement. Your coach will return to your answer here in Session Two. There are no right words. There is only your honest answer. Here is what this might sound like for someone else: \"I lead because I have seen what happens when people are left without direction, and I cannot walk away from that.\" Or: \"I lead because something in me has always believed that the people around me are capable of more than they know, and I want to be the one who helps them find it.\" Finish yours in your own words." },
+    hint:"This is the seed of your personal Why Statement. Your coach may return to your answer during your coaching session as you explore your personal Why Statement. There are no right words. There is only your honest answer. Here is what this might sound like for someone else: \"I lead because I have seen what happens when people are left without direction, and I cannot walk away from that.\" Or: \"I lead because something in me has always believed that the people around me are capable of more than they know, and I want to be the one who helps them find it.\" Finish yours in your own words." },
 
   { movement:"Movement Four", mTitle:"Character Under Pressure",
-    q:"What is the single most important thing about your character that Sypnios needs to know before investing in you, something that would not show up in a reference check, a financial statement, or a track record review?" }
+    q:"What is the single most important thing about your character that someone seeking to truly understand you as a leader needs to know—something that would not be evident from your accomplishments, reputation, or professional track record?" }
 ];
 
 // ============================================================
@@ -880,9 +897,9 @@ function addObserver() {
   div.innerHTML = `
     <div class="observer-num">Observer ${observerCount}</div>
     <div class="field-grid two" style="margin-top:8px">
-      <div class="field"><label>Full Name</label><input type="text" id="obsN_${observerCount}" placeholder="Jane Doe"></div>
+      <div class="field"><label>Full Name${observerCount <= 5 ? '<span class="req">*</span>' : ''}</label><input type="text" id="obsN_${observerCount}" placeholder="Jane Doe"></div>
       <div class="field">
-        <label>Email Address</label>
+        <label>Email Address${observerCount <= 5 ? '<span class="req">*</span>' : ''}</label>
         <input type="text" id="obsE_${observerCount}" placeholder="janedoe@email.com">
         <span class="errmsg" id="obsErr_${observerCount}">Must include @ symbol</span>
       </div>
@@ -935,35 +952,42 @@ async function submitIntake() {
     }
   }
 
-  // v7.0: require at least five complete observers, no duplicate emails
-  const seenObs = new Set();
-  let completeObs = 0;
-  let obsProblem = false;
+  // v7.0: observers 1-5 required; 6-7 optional but never half-complete; no duplicates
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const seenObs = {};
+  const obsIssues = [];
   for (let i = 1; i <= observerCount; i++) {
     const nEl = document.getElementById('obsN_' + i);
     const eEl = document.getElementById('obsE_' + i);
     if (!nEl || !eEl) continue;
     const n = nEl.value.trim();
     const e = eEl.value.trim().toLowerCase();
-    if (!n && !e) { nEl.classList.remove('err'); eEl.classList.remove('err'); continue; }
-    const validEmail = e.includes('@') && e.includes('.');
-    const dup = validEmail && seenObs.has(e);
-    nEl.classList.toggle('err', !n);
-    eEl.classList.toggle('err', !validEmail || dup);
-    if (!n || !validEmail || dup) { obsProblem = true; continue; }
-    seenObs.add(e);
-    completeObs++;
+    let nBad = false, eBad = false;
+    if (!n && !e) {
+      if (i <= 5) { nBad = true; eBad = true; obsIssues.push('Observer ' + i + ': name and email address are required.'); }
+    } else {
+      if (!n) { nBad = true; obsIssues.push('Observer ' + i + ': please add a full name' + (i > 5 ? ', or clear this optional row.' : '.')); }
+      if (!emailRe.test(e)) { eBad = true; obsIssues.push('Observer ' + i + ': please enter a valid email address' + (i > 5 ? ', or clear this optional row.' : '.')); }
+      else if (seenObs[e]) { eBad = true; obsIssues.push('Observer ' + i + ': this email address is already used for Observer ' + seenObs[e] + '.'); }
+      else { seenObs[e] = i; }
+    }
+    nEl.classList.toggle('err', nBad);
+    eEl.classList.toggle('err', eBad);
   }
   const obsCountErr = document.getElementById('obsCountErr');
-  if (completeObs < 5 || obsProblem) {
+  const obsErrList = document.getElementById('obsErrList');
+  if (obsIssues.length) {
     ok = false;
+    if (obsErrList) obsErrList.innerHTML = obsIssues.map(t => '<li>' + t + '</li>').join('');
     if (obsCountErr) obsCountErr.classList.add('show');
   } else if (obsCountErr) {
     obsCountErr.classList.remove('show');
   }
 
   if (!ok) {
-    document.querySelector('input.err, .errmsg.show')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const infoErr = document.querySelector('#sIntake .field-grid input.err:not([id^="obs"])');
+    const target = infoErr || (obsIssues.length ? obsCountErr : document.querySelector('input.err'));
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
@@ -1052,7 +1076,7 @@ function showQuestion(idx) {
   const q = QUESTIONS[idx];
 
   // Update header
-  document.getElementById('progressBar').style.width = ((idx + 1) / 16 * 100) + '%';
+  document.getElementById('progressBar').style.width = ((idx + 1) / 20 * 100) + '%';
   document.getElementById('headerProgress').textContent = q.movement + ' · Question ' + (idx + 1) + ' of 20';
 
   // Back button
@@ -1618,7 +1642,41 @@ async function advance(idx) {
   }
   // Auto-save progress to Supabase after each question
   autoSaveToSupabase(idx).catch(() => {}); // fire and forget, non-blocking
+  if (idx === 9) { showHalfway(); return; } // v7.0: encouragement after Question 10
   showQuestion(idx + 1);
+}
+
+// v7.0: halfway encouragement screen (not a question; nothing is submitted)
+let showingHalfway = false;
+function showHalfway() {
+  showingTransition = true;
+  showingHalfway = true;
+  currentQ = 10; // Back returns to Question 10
+  const hp = document.getElementById('headerProgress');
+  if (hp) hp.textContent = 'Halfway · 10 of 20';
+  const qc = document.getElementById('movQCount');
+  if (qc) qc.textContent = '10 of 20';
+  document.getElementById('qArea').innerHTML = `
+    <div class="movement-transition">
+      <svg class="halfway-trophy" viewBox="0 0 100 100" role="img" aria-label="Trophy">
+        <defs>
+          <linearGradient id="hwGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#E2C88C"/><stop offset="0.55" stop-color="#C4A15E"/><stop offset="1" stop-color="#A9853F"/>
+          </linearGradient>
+        </defs>
+        <path d="M31 14h38v20c0 12.2-8.5 22-19 22s-19-9.8-19-22z" fill="url(#hwGold)"/>
+        <path d="M31 20H22c0 10 5 16 12 17M69 20h9c0 10-5 16-12 17" fill="none" stroke="#B8975A" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M46 56h8v13h-8z" fill="#B8975A"/>
+        <path d="M37 70h26l3 9H34z" fill="url(#hwGold)"/>
+        <rect x="30" y="79" width="40" height="7" rx="1.5" fill="#9C7C3A"/>
+        <path d="M41 22c2 8 5 12 9 14" fill="none" stroke="#F5E8C8" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+      </svg>
+      <div class="mt-title" style="font-size:clamp(34px,6vw,52px)">You&rsquo;re Halfway There.</div>
+      <div class="halfway-count">10 Questions Completed. 10 Questions Remaining.</div>
+      <p class="mt-body">You&rsquo;ve already answered ten questions that invite you to look honestly at your life and leadership.<br><br>We recognize that meaningful reflection takes time, energy, and intention.<br><br>Thank you for investing in yourself, your leadership, and the people entrusted to your care.<br><br>You&rsquo;re halfway through. Keep going. The next ten questions matter.</p>
+      <div class="halfway-break"><strong>Need a quick break?</strong> This is a natural place to take one. Please keep this browser tab open. Your responses have not yet been submitted, and closing or refreshing the page may cause you to lose your progress.</div>
+      <button class="btn-primary" style="max-width:360px;margin:0 auto" onclick="showingHalfway = false; showQuestion(10)">Continue to Question 11 &rarr;</button>
+    </div>`;
 }
 
 async function completePortrait() {
@@ -1643,6 +1701,13 @@ async function completePortrait() {
 
 async function goBack() {
   if (isRecording) await stopRec(currentQ);
+  if (showingHalfway) { // v7.0: from the halfway screen back to Question 10
+    showingHalfway = false;
+    updateMovProgress(9);
+    document.getElementById('headerProgress').textContent = QUESTIONS[9].movement + ' · Question 10 of 20';
+    renderQuestion(9);
+    return;
+  }
   if (showingTransition) {
     if (currentQ > 0) renderQuestion(currentQ - 1);
     return;
